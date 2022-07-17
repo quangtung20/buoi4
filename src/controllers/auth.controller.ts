@@ -53,5 +53,4 @@ export const AuthCtrl = {
         res.json(users);
     }
 
-
 }
