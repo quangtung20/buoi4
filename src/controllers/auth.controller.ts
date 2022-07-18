@@ -1,11 +1,33 @@
 import {Request, Response} from 'express'
 import { Users } from '../models/user.model'
+import * as bcrypt from 'bcryptjs'
 
 export const AuthCtrl = {
     register:async(req:Request,res:Response)=>{
-        const user = await Users.create(req.body);
+        const {email,password} = req.body; // object detructoring
+        console.log('before hash',password);
+        const hashPassword = await bcrypt.hash(password,12);
+        console.log('after hash',hashPassword);
+
+        const user = await Users.create({...req.body,password:hashPassword});
         res.json({...user._doc, password:''}); // user:user, password:'
     },
+
+    login:async(req:Request,res:Response)=>{
+        const {email,password} = req.body; //password:123456
+        const checkUser = await Users.findOne({email:email});
+        console.log(checkUser);
+        if(!checkUser){
+            res.status(400).json('email nay chua dang ki');
+        }
+
+        const checkPassword = await bcrypt.compare(password,checkUser.password);// $2a$12$PcJhO2M6xQpciZ8SJHdWv.ZeXww6SJibIhQqdNkQW3tq9IQy4L1Xu
+        if(!checkPassword){
+            res.status(400).json('mat khau khong dung');
+        }
+        res.status(200).json('dang nhap thanh cong');
+    },
+
 
     getAllUsers:async(req:Request, res:Response) => {
         const users = await Users.find({username:/nam/});

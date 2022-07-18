@@ -4,7 +4,8 @@ import { AuthCtrl } from '../controllers/auth.controller';
 export const router = express.Router();
 
 router.get('/search',AuthCtrl.learnSearch);
-router.post('/', AuthCtrl.register);
+router.post('/register', AuthCtrl.register);
+router.post('/login', AuthCtrl.login);
 router.get('/',AuthCtrl.getAllUsers);
 router.get('/:id', AuthCtrl.getUserById);
 router.put('/:id',AuthCtrl.updateUser);
