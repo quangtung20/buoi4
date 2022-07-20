@@ -1,6 +1,7 @@
 import {Request, Response} from 'express'
 import { Users } from '../models/user.model'
 import * as bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken' // b1
 
 export const AuthCtrl = {
     register:async(req:Request,res:Response)=>{
@@ -10,22 +11,48 @@ export const AuthCtrl = {
         console.log('after hash',hashPassword);
 
         const user = await Users.create({...req.body,password:hashPassword});
-        res.json({...user._doc, password:''}); // user:user, password:'
+        const accessToken = await jwt.sign({_id:user._id},process.env.SECRET_KEY,{ //b2 sign user bang truong userid
+            expiresIn: '1d'
+        })
+
+        res.cookie('accesstoken',accessToken,{ //b3 gan accessToken len cookie
+            httpOnly:true,
+            path:'/',
+            maxAge:30*24*60*60*1000,
+        })
+
+        res.status(201).json({username:user.username}); // user:user, password:'
     },
 
     login:async(req:Request,res:Response)=>{
         const {email,password} = req.body; //password:123456
-        const checkUser = await Users.findOne({email:email});
-        console.log(checkUser);
-        if(!checkUser){
+        const user = await Users.findOne({email:email});
+        if(!user){
             res.status(400).json('email nay chua dang ki');
         }
 
-        const checkPassword = await bcrypt.compare(password,checkUser.password);// $2a$12$PcJhO2M6xQpciZ8SJHdWv.ZeXww6SJibIhQqdNkQW3tq9IQy4L1Xu
+        const checkPassword = await bcrypt.compare(password,user.password);// $2a$12$PcJhO2M6xQpciZ8SJHdWv.ZeXww6SJibIhQqdNkQW3tq9IQy4L1Xu
         if(!checkPassword){
             res.status(400).json('mat khau khong dung');
         }
-        res.status(200).json('dang nhap thanh cong');
+        const accessToken = await jwt.sign({_id:user._id},process.env.SECRET_KEY,{
+            expiresIn: '1d'
+        })
+
+        res.cookie('accesstoken',accessToken,{
+            httpOnly:true,
+            path:'/',
+            maxAge:30*24*60*60*1000,
+        })
+        res.status(200).json({username:user.username});
+    },
+
+    logout:async(req:Request, res:Response)=>{
+        res.clearCookie('accesstoken',{
+            path:'/',
+        });
+
+        res.status(200).json('logout successfully');
     },
 
 
