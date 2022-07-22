@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
 
     age:{
         type:Number,
+    },
+    role:{
+        type:String,
+        default:'user'
     }
 })
 

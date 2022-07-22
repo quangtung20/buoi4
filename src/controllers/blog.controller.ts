@@ -1,6 +1,7 @@
 import {Request, Response} from 'express'
 import { Blogs } from '../models/blog.model'
 import { Categories } from '../models/category.model';
+import { Users } from '../models/user.model';
 
 
 export const BlogCtrl = {
